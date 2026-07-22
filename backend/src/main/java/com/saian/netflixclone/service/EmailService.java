@@ -31,6 +31,12 @@ public class EmailService {
                 "Welcome! Click the link to verify your account:\n" + link);
     }
 
+    public void sendPasswordResetEmail(String to, String token) {
+        String link = frontendUrl + "/reset-password?token=" + token;
+        send(to, "Reset your Netflix Clone password",
+                "Click the link to reset your password (valid for 1 hour):\n" + link);
+    }
+
     private void send(String to, String subject, String body) {
         if (!mailEnabled) {
             log.info("MAIL DISABLED (dev mode) — would send to {}: {}\n{}", to, subject, body);

@@ -2,7 +2,9 @@ package com.saian.netflixclone.service;
 
 import com.saian.netflixclone.config.JwtService;
 import com.saian.netflixclone.dto.Mapper;
+import com.saian.netflixclone.dto.request.ChangePasswordRequest;
 import com.saian.netflixclone.dto.request.LoginRequest;
+import com.saian.netflixclone.dto.request.ResetPasswordRequest;
 import com.saian.netflixclone.dto.request.SignupRequest;
 import com.saian.netflixclone.dto.response.AuthResponse;
 import com.saian.netflixclone.dto.response.UserResponse;
@@ -73,6 +75,42 @@ public class AuthService {
         userRepository.save(user);
         emailService.sendVerificationEmail(user.getEmail(), user.getVerificationToken());
         return Mapper.toUserResponse(user);
+    }
+
+    @Transactional
+    public void forgotPassword(String email) {
+        // Always succeed silently — never reveal whether an email is registered.
+        userRepository.findByEmail(email).ifPresent(user -> {
+            user.setResetPasswordToken(UUID.randomUUID().toString());
+            user.setResetPasswordTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS));
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getResetPasswordToken());
+        });
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByResetPasswordToken(request.token())
+                .orElseThrow(() -> new InvalidTokenException("Invalid password reset token"));
+
+        if (user.getResetPasswordTokenExpiry().isBefore(Instant.now())) {
+            throw new InvalidTokenException("Password reset token has expired, please request a new one");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setResetPasswordToken(null);
+        user.setResetPasswordTokenExpiry(null);
+    }
+
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
     }
 
     @Transactional
