@@ -1,0 +1,28 @@
+# ---- Java / Maven (backend) ----
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.log
+
+# ---- Uploaded media (kept on disk, not in git) ----
+backend/uploads/
+uploads/
+
+# ---- Node / Angular (frontend) ----
+node_modules/
+frontend/dist/
+.angular/
+
+# ---- IDE / OS ----
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ---- Env / secrets (local overrides) ----
+.env
+*.local
+
+# ---- Stray scratch files ----
+**/dump.txt
