@@ -6,6 +6,7 @@ import com.saian.netflixclone.dto.response.VideoResponse;
 import com.saian.netflixclone.entity.Video;
 import com.saian.netflixclone.exception.ResourceNotFoundException;
 import com.saian.netflixclone.repository.VideoRepository;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +16,11 @@ import java.util.List;
 public class VideoService {
 
     private final VideoRepository videoRepository;
+    private final StorageService storageService;
 
-    public VideoService(VideoRepository videoRepository) {
+    public VideoService(VideoRepository videoRepository, StorageService storageService) {
         this.videoRepository = videoRepository;
+        this.storageService = storageService;
     }
 
     @Transactional
@@ -66,6 +69,15 @@ public class VideoService {
 
     public VideoResponse findById(Long id) {
         return Mapper.toVideoResponse(findVideo(id));
+    }
+
+    /** Loads the actual video file on disk so the controller can stream it. */
+    public Resource loadVideoResource(Long id) {
+        Video video = findVideo(id);
+        String src = video.getSrc();
+        // src may be "uploads/xyz.mp4" or a full URL — we only need the file name.
+        String filename = src.substring(src.lastIndexOf('/') + 1);
+        return storageService.loadAsResource(filename);
     }
 
     private Video findVideo(Long id) {

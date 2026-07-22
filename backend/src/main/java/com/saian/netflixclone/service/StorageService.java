@@ -1,13 +1,17 @@
 package com.saian.netflixclone.service;
 
 import com.saian.netflixclone.exception.FileStorageException;
+import com.saian.netflixclone.exception.ResourceNotFoundException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -75,5 +79,29 @@ public class StorageService {
 
         // Relative path — Mapper turns this into a full URL in responses.
         return uploadRoot.getFileName() + "/" + storedName;
+    }
+
+    /**
+     * Loads a previously stored file as a readable Resource for streaming.
+     *
+     * @param filename just the file name (e.g. "9af3...c2.mp4"), not a full path or URL
+     */
+    public Resource loadAsResource(String filename) {
+        Path file = uploadRoot.resolve(filename).normalize();
+
+        // Safety: never let a crafted name escape the uploads folder.
+        if (!file.getParent().equals(uploadRoot)) {
+            throw new FileStorageException("Invalid file path: " + filename);
+        }
+
+        try {
+            Resource resource = new UrlResource(file.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new ResourceNotFoundException("File not found: " + filename);
+            }
+            return resource;
+        } catch (MalformedURLException e) {
+            throw new FileStorageException("Could not read file: " + filename, e);
+        }
     }
 }
