@@ -27,5 +27,8 @@ Thumbs.db
 .env
 *.local
 
+# Real config with secrets stays local; commit application.properties.example instead
+backend/src/main/resources/application.properties
+
 # ---- Stray scratch files ----
 **/dump.txt

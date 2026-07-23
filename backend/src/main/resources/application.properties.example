@@ -1,9 +1,11 @@
 spring.application.name=netflix-clone-backend
 
 # --- PostgreSQL ---
+# Copy this file to application.properties and fill in real values.
+# Real secrets should come from environment variables (DB_PASSWORD, JWT_SECRET, ...).
 spring.datasource.url=jdbc:postgresql://localhost:5432/netflixclone
 spring.datasource.username=postgres
-spring.datasource.password=${DB_PASSWORD:anirudh1}
+spring.datasource.password=${DB_PASSWORD:changeme}
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.open-in-view=false
 
@@ -22,7 +24,8 @@ spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 
 # --- JWT ---
-app.jwt.secret=${JWT_SECRET:c2FpYW5uZXRmbGl4Y2xvbmVzdXBlcnNlY3JldGtleWZvcmp3dHNpZ25pbmcxMjM0NTY3OA==}
+# Generate one with: openssl rand -base64 48
+app.jwt.secret=${JWT_SECRET:generate-a-long-random-secret-here}
 app.jwt.expiration-ms=86400000
 
 # --- Frontend origin for links + CORS ---
